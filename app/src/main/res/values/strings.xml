@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">messager</string>
+    <string name="sing_in">Войти</string>
+    <string name="sing_up">Регистрация</string>
+    <string name="login">Логин</string>
+    <string name="password">Пароль</string>
+    <string name="first_name">Имя</string>
+    <string name="last_name">Фамилия</string>
+    <string name="make_reg">Зарегистрироваться</string>
+    <string name="preference_file_key">company.my.messager.PREFERENCE_FILE_KEY</string>
+    <string name="SAVE_KEY">isSaved</string>
+    <string name="SING_IN_ERROR_EMPTY">Ошибка входа(пустая форма)</string>
+    <string name="SING_IN_ERROR_NO_NAME">Неверный логин или пароль</string>
+    <string name="server_name">http://funisfun.gear.host/</string>
+    <string name="ACTION_SING_IN">company.my.testfun.action.SingIn</string>
+    <string name="ACTION_SING_UP">company.my.testfun.action.SingUp</string>
+    <string name="USERS_DATABASE_NAME">db_users.db</string>
+    <string name="MAILS_DATABASE_NAME">db_mails.db</string>
+    <string name="name_users">Пользователи</string>
+    <string name="name_massages">Сообщения</string>
+</resources>

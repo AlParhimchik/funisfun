@@ -1,0 +1,96 @@
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/card_view"
+        android:layout_margin="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="0dp"
+        android:paddingRight="0dp">
+
+        <RelativeLayout
+            android:id="@+id/card_layout"
+            android:clickable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="0dp">
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/layout_left"
+                android:visibility="visible">
+                <ImageView
+
+                    android:layout_alignParentLeft="true"
+                    android:id="@+id/user_left"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_marginTop="5dp"
+                    android:src="@drawable/user_pacific" />
+                <ImageView
+                    android:id="@+id/image_corner_left"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="-15dp"
+                    android:layout_marginTop="4.4dp"
+                    android:layout_toRightOf="@id/user_left"
+                    android:src="@drawable/arrow_bg2" />
+                <TextView
+                    android:layout_toRightOf="@id/user_left"
+                    android:layout_marginLeft="60dp"
+                    android:id="@+id/mail_view_left"
+                    android:layout_alignParentLeft="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:layout_gravity="right"
+                    android:background="@drawable/rounded_corner"
+                    android:padding="16dp"
+                    android:gravity="left"
+                    android:text="hello_123word"
+                    android:textColor="#000" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/layout_right"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible">
+                <ImageView
+
+                    android:layout_alignParentRight="true"
+                    android:id="@+id/user_rigth"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_marginTop="5dp"
+                    android:src="@drawable/user_pacific" />
+                <ImageView
+                    android:id="@+id/image_corner_rigth"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginLeft="-15dp"
+                    android:layout_marginTop="4.2dp"
+                    android:layout_toLeftOf="@id/user_rigth"
+                    android:src="@drawable/arrow_bg1" />
+                <TextView
+                    android:layout_toLeftOf="@id/user_rigth"
+                    android:layout_marginRight="60dp"
+                    android:id="@+id/mail_view_rigth"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/rounded_corner"
+                    android:padding="16dp"
+                    android:gravity="right"
+                    android:text="hello_word"
+                    android:textColor="#000" />
+            </RelativeLayout>
+
+        </RelativeLayout>
+
+
+
+    </RelativeLayout>
