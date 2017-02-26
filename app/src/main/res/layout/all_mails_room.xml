@@ -14,9 +14,9 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="0dp">
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/my_recycler_view_users"
+            android:id="@+id/my_recycler_view_all_mails"
             android:scrollbars="vertical"
-              android:layout_width="match_parent"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"/>
     </ScrollView>
 </LinearLayout>

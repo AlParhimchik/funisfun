@@ -18,21 +18,22 @@
             <ImageView
                 android:layout_alignParentLeft="true"
                 android:id="@+id/user_icon"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
                 android:layout_marginTop="5dp"
                 android:src="@drawable/user_pacific" />
             <TextView
                 android:layout_toRightOf="@id/user_icon"
-                android:layout_marginLeft="60dp"
+                android:layout_marginLeft="50dp"
                 android:id="@+id/user_name"
                 android:layout_alignParentLeft="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="2dp"
                 android:layout_gravity="right"
                 android:padding="16dp"
                 android:gravity="left"
+                android:textSize="17dp"
                 android:text="hello_123word"
                 android:textColor="#000" />
     </RelativeLayout>

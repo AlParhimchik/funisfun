@@ -18,4 +18,6 @@
     <string name="MAILS_DATABASE_NAME">db_mails.db</string>
     <string name="name_users">Пользователи</string>
     <string name="name_massages">Сообщения</string>
+    <string name="ACTION_STORE_USERS">company.my.testfun.action.StoreUsers</string>
+    <string name="ACTION_STORE_MAILS">company.my.testfun.action.StoreMails</string>
 </resources>

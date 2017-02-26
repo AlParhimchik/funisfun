@@ -1,20 +1,16 @@
 package com.example.sashok.messanger;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,7 +35,7 @@ public class mailsAdapter  extends RecyclerView.Adapter<mailsAdapter.ViewHolder>
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.mail_list, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.all_mails_list, parent, false);
         ViewHolder pvh = new ViewHolder(v);
         return pvh;
     }
@@ -51,30 +47,47 @@ public class mailsAdapter  extends RecyclerView.Adapter<mailsAdapter.ViewHolder>
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if (mSettings==null) mSettings=ctx.getSharedPreferences(ctx.getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-        String curLogin=mSettings.getString(Person.COLUMN_NAME_LOGIN,"");
-        chatDBlocal = ctx.openOrCreateDatabase(DB_NAME,
-                Context.MODE_PRIVATE, null);
-        chatDBlocal.execSQL(CREATE_USERS_DB);
-        Cursor cursor=chatDBlocal.query(Person.TABLE_NAME,new String[]{Person._ID},Person.COLUMN_NAME_LOGIN+"=?",new String[]{curLogin},null,null,null);
-        int curID=0;
-        if (cursor.moveToFirst()){
-            curID=cursor.getInt(cursor.getColumnIndex(Person._ID));
+        holder.date.setText(mails.get(position).time.toString());
+        holder.mail_text.setText(mails.get(position).text);
+        User user;
+        if(mails.get(position).receiver==null)
+           user=mails.get(position).sender;
+        else {
+            user = mails.get(position).receiver;
         }
+        holder.name_user.setText(user.first_name+" "+user.last_name);
+        holder.mail_view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(ctx,ChatActivity.class);
+                ctx.startActivity(intent);
+            }
+        });
 
-        if (curID==mails.get(position).receiveID) {
-            holder.layout_left.setVisibility(View.INVISIBLE);
-            holder.mail_right.setText(mails.get(position).text);
-            holder.layout_right.setVisibility(View.VISIBLE);
-
-        }
-        else{
-            holder.layout_right.setVisibility(View.INVISIBLE);
-            holder.layout_left.setVisibility(View.VISIBLE);
-            holder.mail_left.setText(mails.get(position).text);
-        }
-
-        cursor.close();
+//        if (mSettings==null) mSettings=ctx.getSharedPreferences(ctx.getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+//        String curLogin=mSettings.getString(Person.COLUMN_NAME_LOGIN,"");
+//        chatDBlocal = ctx.openOrCreateDatabase(DB_NAME,
+//                Context.MODE_PRIVATE, null);
+//        chatDBlocal.execSQL(CREATE_USERS_DB);
+//        Cursor cursor=chatDBlocal.query(Person.TABLE_NAME,new String[]{Person._ID},Person.COLUMN_NAME_LOGIN+"=?",new String[]{curLogin},null,null,null);
+//        int curID=0;
+//        if (cursor.moveToFirst()){
+//            curID=cursor.getInt(cursor.getColumnIndex(Person._ID));
+//        }
+//
+//        if (curID==mails.get(position).receiveID) {
+//            holder.layout_left.setVisibility(View.INVISIBLE);
+//            holder.mail_right.setText(mails.get(position).text);
+//            holder.layout_right.setVisibility(View.VISIBLE);
+//
+//        }
+//        else{
+//            holder.layout_right.setVisibility(View.INVISIBLE);
+//            holder.layout_left.setVisibility(View.VISIBLE);
+//            holder.mail_left.setText(mails.get(position).text);
+//        }
+//
+//        cursor.close();
 
     }
 
@@ -89,16 +102,15 @@ public class mailsAdapter  extends RecyclerView.Adapter<mailsAdapter.ViewHolder>
     }
 
     public  class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView mail_left,mail_right;
-        public RelativeLayout layout_left,layout_right;
+        public TextView name_user,mail_text,date;
+        public  RelativeLayout mail_view;
+
         public ViewHolder(View v) {
             super(v);
-            mail_left=(TextView)v.findViewById(R.id.mail_view_left);
-            mail_right=(TextView)v.findViewById(R.id.mail_view_rigth);
-            layout_left=(RelativeLayout)v.findViewById(R.id.layout_left);
-            layout_right=(RelativeLayout)v.findViewById(R.id.layout_right);
-
-
+            name_user=(TextView)v.findViewById(R.id.user_name_mail);
+            mail_text=(TextView)v.findViewById(R.id.message_text);
+            date=(TextView)v.findViewById(R.id.date_text);
+            mail_view=(RelativeLayout)v.findViewById(R.id.layout_mail_user);
         }
     }
 }

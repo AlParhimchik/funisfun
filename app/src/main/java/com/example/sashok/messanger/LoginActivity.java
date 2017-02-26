@@ -62,26 +62,14 @@ public class LoginActivity extends AppCompatActivity implements  View.OnFocusCha
                 progressDialog.dismiss();
                     Boolean result = intent.getBooleanExtra("result", false);
                     if (result) {
-                        if (mSettings==null) getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor=mSettings.edit();
-                        editor.putBoolean(getString(R.string.SAVE_KEY), true);
-                        editor.apply();
                         Intent chatIntent = new Intent(getBaseContext(), HomeActivity.class);
                         startActivity(chatIntent);
                     } else {
                         Toast.makeText(getBaseContext(), result.toString(), Toast.LENGTH_SHORT).show();
-                        if (mSettings == null)
-                            mSettings = getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor=mSettings.edit();
-                        editor.putBoolean(getString(R.string.SAVE_KEY),false);
-                        editor.apply();
                     }
                 }
 
         };
-//        IntentFilter intentFilter = new IntentFilter(getString(R.string.ACTION_SING_IN));
-//        intentFilter.addAction(getString(R.string.ACTION_SING_UP));
-//        registerReceiver(myReciever,intentFilter);
 
         login_form= (EditText) findViewById(R.id.login_form);
         password_form = (EditText) findViewById(R.id.password_form);

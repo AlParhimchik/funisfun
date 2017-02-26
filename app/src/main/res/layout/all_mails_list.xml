@@ -1,0 +1,72 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/card_view"
+    android:layout_margin="0dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="0dp"
+    android:paddingRight="0dp">
+
+    <RelativeLayout
+        android:id="@+id/card_layout"
+        android:clickable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="0dp">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/layout_mail_user"
+            android:clickable="true"
+            android:visibility="visible">
+            <ImageView
+
+                android:layout_alignParentLeft="true"
+                android:id="@+id/user_mail"
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:layout_marginTop="5dp"
+                android:src="@drawable/user_pacific" />
+            <TextView
+                android:layout_toRightOf="@id/user_mail"
+                android:layout_marginLeft="70dp"
+                android:id="@+id/user_name_mail"
+                android:layout_alignParentLeft="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:padding="1dp"
+                android:gravity="left"
+                android:text="hello_123word"
+                android:textSize="20dp"
+                android:textColor="#000" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="11.123.1231"
+                android:padding="10dp"
+
+                android:textSize="13dp"
+                android:id="@+id/date_text"
+                android:layout_alignParentRight="true"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="14dp"
+                android:maxHeight="22dp"
+                android:id="@+id/message_text"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="40dp"
+                android:textSize="16dp"
+                android:text="helhellohelhellohellohellohellolohelhellohellohellohellolohellohellohellolo"
+                android:layout_toRightOf="@id/user_mail" />
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+
+
+</RelativeLayout>

@@ -8,6 +8,7 @@ import java.util.Date;
 public class Mail {
     public int mailID;
     public int receiveID,senderID;
+    public User receiver,sender;
     public String text;
     public Date time;
     public Mail()

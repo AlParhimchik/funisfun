@@ -11,32 +11,22 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.concurrent.ExecutionException;
 
-import microsoft.aspnet.signalr.client.Action;
 import microsoft.aspnet.signalr.client.ConnectionState;
 import microsoft.aspnet.signalr.client.Credentials;
 import microsoft.aspnet.signalr.client.Platform;
@@ -206,6 +196,7 @@ public class FoneService extends Service {
                     public void run() {
                         Log.i("TAG", "closed");
                         isConServer=false;
+                        mHubProxy=null;
                         if (isActiveNetwork())
                         mOpenConnection = new OpenConnection();
                         mOpenConnection.execute();
@@ -257,36 +248,43 @@ public class FoneService extends Service {
         }
     }
 
-    public  class SingInTask extends AsyncTask<Void,Void,Boolean> {
+    public  class SingInTask extends AsyncTask<Void,Void,JsonObject> {
 
         @Override
-        protected Boolean doInBackground(Void[] objects) {
-            Boolean result=false;
+        protected JsonObject doInBackground(Void[] objects) {
+            JsonObject result;
             final String SERVER_METHOD_SEND = "SingIn";
             try {
                 while (mHubProxy==null){}
-                result = mHubProxy.invoke(Boolean.class, SERVER_METHOD_SEND, cur_user.login,cur_user.password).get();
+                result = mHubProxy.invoke(JsonObject.class, SERVER_METHOD_SEND, cur_user.login,cur_user.password).get();
             }
             catch (InterruptedException | ExecutionException e) {
-                result=false;
+                result=null;
             }
           return result;
          }
 
         @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
+        protected void onPostExecute(JsonObject jo) {
+            super.onPostExecute(jo);
             Intent intent=new Intent();
-            intent.putExtra("result",result);
-            intent.setAction(getString(R.string.ACTION_SING_IN));
-            //            mHubProxy.subscribe("updateUsers").addReceivedHandler(new Action<JsonElement[]>() {
-//                    @Override
-//                    public void run(JsonElement[] jsonElements) throws Exception {
-//                        Log.i("TAG", jsonElements[0].toString());
-//
-//                    }
-//                });
+            if (mSettings==null) getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor=mSettings.edit();
+            if (jo==null || jo.isJsonNull()) {
+                intent.putExtra("result",false);
+                editor.putBoolean(getString(R.string.SAVE_KEY),false);
+            }
+            else {
+                intent.putExtra("result",true);
+                editor.putInt(Person._ID, jo.get("Id").getAsInt());
+                editor.putString(Person.COLUMN_NAME_FIRST_NAME, jo.get("FirstName").getAsString());
+                editor.putString(Person.COLUMN_NAME_LAST_NAME, jo.get("LastName").getAsString());
+                editor.putString(Person.COLUMN_NAME_LOGIN, jo.get("Login").getAsString());
+                editor.putBoolean(getString(R.string.SAVE_KEY),true);
+            }
+            editor.apply();
 
+            intent.setAction(getString(R.string.ACTION_SING_IN));
             sendBroadcast(intent);
         }
     }
@@ -296,9 +294,9 @@ public class FoneService extends Service {
     {
         if (isActiveNetwork()) {
 //            if (!isConServer) connect();
-            mHubConnection.stop();
-            mHubProxy=null;
-            connect();
+            if (isConServer) mHubConnection.stop();
+            //mHubProxy=null;
+            //connect();
             SingUpTask sing_up = new SingUpTask();
             sing_up.execute();
         }
@@ -311,31 +309,42 @@ public class FoneService extends Service {
 
     }
 
-    public  class SingUpTask extends AsyncTask<Void,Void,Boolean> {
+    public  class SingUpTask extends AsyncTask<Void,Void,JsonObject> {
 
         @Override
-        protected Boolean doInBackground(Void[] objects) {
-            Boolean result;
+        protected JsonObject doInBackground(Void[] objects) {
+            JsonObject result;
             final String SERVER_METHOD_SEND = "addNewUser";
             try {
+
                 while (mHubProxy==null){}
-                result = mHubProxy.invoke(Boolean.class, SERVER_METHOD_SEND, cur_user.first_name,cur_user.login,cur_user.password,cur_user.last_name).get();
+                result = mHubProxy.invoke(JsonObject.class, SERVER_METHOD_SEND, cur_user.first_name,cur_user.login,cur_user.password,cur_user.last_name).get();
             }
             catch (InterruptedException| ExecutionException e) {
-                result=false;
+                result=null;
             }
             return result;
         }
 
         @Override
-        protected void onPostExecute(Boolean result) {
+        protected void onPostExecute(JsonObject jo) {
+            super.onPostExecute(jo);
             if (mSettings==null) getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
             SharedPreferences.Editor editor=mSettings.edit();
-            editor.putBoolean(getString(R.string.SAVE_KEY), result);
-            editor.apply();
-            super.onPostExecute(result);
             Intent intent=new Intent();
-            intent.putExtra("result",result);
+            if (jo==null || jo.isJsonNull()) {
+                intent.putExtra("result",false);
+                editor.putBoolean(getString(R.string.SAVE_KEY),false);
+            }
+            else {
+                intent.putExtra("result",true);
+                editor.putInt(Person._ID, jo.get("Id").getAsInt());
+                editor.putString(Person.COLUMN_NAME_FIRST_NAME, jo.get("FirstName").getAsString());
+                editor.putString(Person.COLUMN_NAME_LAST_NAME, jo.get("LastName").getAsString());
+                editor.putString(Person.COLUMN_NAME_LOGIN, jo.get("Login").getAsString());
+                editor.putBoolean(getString(R.string.SAVE_KEY),true);
+            }
+            editor.apply();
             intent.setAction(getString(R.string.ACTION_SING_UP));
             sendBroadcast(intent);
         }
@@ -361,12 +370,12 @@ public class FoneService extends Service {
         return hasInternetCon;
     }
 
-    public class selectMailsTask extends  AsyncTask<Void,Void,JsonArray> {
+    public class selectMailsTask extends AsyncTask<Object, Object, Void> {
 
         @Override
-        protected JsonArray doInBackground(Void... params) {
+        protected Void doInBackground(Object... params) {
             int lastID = 0;
-            JsonArray result;
+            JsonArray ja;
             chatDBlocal = openOrCreateDatabase(DB_NAME,
                     Context.MODE_PRIVATE, null);
             chatDBlocal.execSQL(CREATE_MAILS_DB);
@@ -381,16 +390,10 @@ public class FoneService extends Service {
             try {
                 while (mHubProxy == null) {
                 }
-                result = mHubProxy.invoke(JsonArray.class, SERVER_METHOD_SEND, cur_user.login, lastID).get();
+                ja = mHubProxy.invoke(JsonArray.class, SERVER_METHOD_SEND, cur_user.login, lastID).get();
             } catch (InterruptedException | ExecutionException e) {
-                result = null;
+                ja = null;
             }
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(JsonArray ja) {
-            super.onPostExecute(ja);
             JsonObject jo;
             ContentValues insertValues;
             if (ja != null) {
@@ -414,6 +417,16 @@ public class FoneService extends Service {
                     }
                 }
             }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void object) {
+            super.onPostExecute(object);
+            Intent intent=new Intent();
+            intent.setAction(getString(R.string.ACTION_STORE_MAILS));
+            sendBroadcast(intent);
+
         }
     }
 
@@ -439,12 +452,12 @@ public class FoneService extends Service {
         }
     }
 
-    public class selectUserssTask extends  AsyncTask<Void,Void,JsonArray>{
+    public class selectUserssTask extends  AsyncTask<Void,Void,Void>{
 
         @Override
-        protected JsonArray doInBackground(Void... params) {
+        protected Void doInBackground(Void... params) {
             int lastID=0;
-            JsonArray result;
+            JsonArray ja;
             chatDBlocal = openOrCreateDatabase(DB_NAME,
                     Context.MODE_PRIVATE, null);
             chatDBlocal.execSQL(CREATE_USERS_DB);
@@ -458,18 +471,12 @@ public class FoneService extends Service {
             final String SERVER_METHOD_SEND = "selectUsers";
             try {
                 while (mHubProxy==null){}
-                result = mHubProxy.invoke(JsonArray.class, SERVER_METHOD_SEND,lastID).get();
+                ja = mHubProxy.invoke(JsonArray.class, SERVER_METHOD_SEND,lastID).get();
             }
             catch (InterruptedException| ExecutionException e) {
-                result=null;
+                ja=null;
                 e.printStackTrace();
             }
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(JsonArray ja) {
-            super.onPostExecute(ja);
             JsonObject jo;
             ContentValues insertValues;
             if (ja!=null){
@@ -494,6 +501,16 @@ public class FoneService extends Service {
 
 
             }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void object) {
+            super.onPostExecute(object);
+            Intent intent=new Intent();
+            intent.setAction(getString(R.string.ACTION_STORE_USERS));
+            sendBroadcast(intent);
+
         }
     }
 }
