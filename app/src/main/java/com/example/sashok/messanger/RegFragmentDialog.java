@@ -50,16 +50,16 @@ public class RegFragmentDialog extends AlertDialog implements View.OnClickListen
     }
     @Override
     public void onClick(View view) {
-        chatDBlocal = ctx.openOrCreateDatabase(DB_NAME,
-                Context.MODE_PRIVATE, null);
-        chatDBlocal.execSQL(CREATE_DB);
-        cursor = chatDBlocal.query(Person.TABLE_NAME, null, Person.COLUMN_NAME_LOGIN + "=?", new String[]{login_form.getText().toString()}, null, null, null);
-        if (cursor.moveToFirst())
-        {
-            Toast.makeText(ctx,"have such user", Toast.LENGTH_LONG).show();
-            Log.i("TAG", "user not added");
-        }
-        else {
+//        chatDBlocal = ctx.openOrCreateDatabase(DB_NAME,
+//                Context.MODE_PRIVATE, null);
+//        chatDBlocal.execSQL(CREATE_DB);
+//        cursor = chatDBlocal.query(Person.TABLE_NAME, null, Person.COLUMN_NAME_LOGIN + "=?", new String[]{login_form.getText().toString()}, null, null, null);
+//        if (cursor.moveToFirst())
+//        {
+//            Toast.makeText(ctx,"have such user", Toast.LENGTH_LONG).show();
+//            Log.i("TAG", "user not added");
+//        }
+//        else {
 //            ContentValues new_user = new ContentValues();
 //            new_user.put(Person.COLUMN_NAME_LOGIN, login_form.getText().toString());
 //            new_user.put(Person.COLUMN_NAME_PASSWORD, pass_form.getText().toString());
@@ -76,12 +76,8 @@ public class RegFragmentDialog extends AlertDialog implements View.OnClickListen
             editor.putString(Person.COLUMN_NAME_LAST_NAME, last_name_form.getText().toString());
             editor.putBoolean(ctx.getString(R.string.SAVE_KEY),false);
             editor.apply();
-//            cursor.close();
             listener.onButtonClick();
             dismiss();
-
-        }
-        cursor.close();
 
     }
 

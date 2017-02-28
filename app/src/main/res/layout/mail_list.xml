@@ -10,6 +10,7 @@
         <RelativeLayout
             android:id="@+id/card_layout"
             android:clickable="true"
+            android:background="#F7F7F7"
             android:focusableInTouchMode="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -34,9 +35,9 @@
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:layout_marginRight="-15dp"
-                    android:layout_marginTop="4.4dp"
+                    android:layout_marginTop="5dp"
                     android:layout_toRightOf="@id/user_left"
-                    android:src="@drawable/arrow_bg2" />
+                    android:src="@drawable/left_corner" />
                 <TextView
                     android:layout_toRightOf="@id/user_left"
                     android:layout_marginLeft="60dp"
@@ -46,11 +47,20 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:layout_gravity="right"
-                    android:background="@drawable/rounded_corner"
+                    android:background="@drawable/rounded_corner1"
                     android:padding="16dp"
                     android:gravity="left"
+                    android:layout_marginRight="65dp"
                     android:text="hello_123word"
                     android:textColor="#000" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="11.123.1231"
+                    android:padding="10dp"
+                    android:textSize="13dp"
+                    android:id="@+id/date_right"
+                    android:layout_alignParentRight="true"/>
             </RelativeLayout>
             <RelativeLayout
                 android:id="@+id/layout_right"
@@ -82,11 +92,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
+                    android:layout_marginLeft="65dp"
                     android:background="@drawable/rounded_corner"
                     android:padding="16dp"
                     android:gravity="right"
-                    android:text="hello_word"
+                    android:text="hello"
                     android:textColor="#000" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="16:05"
+                    android:padding="10dp"
+                    android:textSize="13dp"
+                    android:id="@+id/date_left"
+                    android:layout_alignParentLeft="true"/>
             </RelativeLayout>
 
         </RelativeLayout>

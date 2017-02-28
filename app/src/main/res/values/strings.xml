@@ -20,4 +20,9 @@
     <string name="name_massages">Сообщения</string>
     <string name="ACTION_STORE_USERS">company.my.testfun.action.StoreUsers</string>
     <string name="ACTION_STORE_MAILS">company.my.testfun.action.StoreMails</string>
+    <string name="ID_KEY">id</string>
+    <string name="NAME_ANOTHER_USER">another_user</string>
+    <string name="ACTION_SEND_MESSAGE">company.my.testfun.action.SendMessage</string>
+
+
 </resources>

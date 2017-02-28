@@ -1,20 +1,22 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/card_view"
-    android:layout_margin="0dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingLeft="0dp"
-    android:paddingRight="0dp">
+    android:layout_height="wrap_content">
 
     <RelativeLayout
-        android:id="@+id/card_layout"
         android:clickable="true"
         android:focusableInTouchMode="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="1dp"
         android:layout_marginBottom="0dp">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/layout_users"
+            android:clickable="true"
+            android:visibility="visible">
             <ImageView
                 android:layout_alignParentLeft="true"
                 android:id="@+id/user_icon"
@@ -36,5 +38,6 @@
                 android:textSize="17dp"
                 android:text="hello_123word"
                 android:textColor="#000" />
-    </RelativeLayout>
+            </RelativeLayout>
+        </RelativeLayout>
 </RelativeLayout>

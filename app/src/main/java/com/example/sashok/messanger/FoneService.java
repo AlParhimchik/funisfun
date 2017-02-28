@@ -15,6 +15,7 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
+import android.text.Editable;
 import android.util.Log;
 
 import com.google.gson.JsonArray;
@@ -52,7 +53,6 @@ public class FoneService extends Service {
     SharedPreferences mSettings;
     User cur_user=new User();
     Boolean is_binded=true;
-    Boolean hasInternetCon=false;
     Boolean isConServer=false;
     BroadcastReceiver broadcastReceiver;
     private final IBinder mBinder = new FoneService.LocalBinder(); // Binder given to clients
@@ -76,8 +76,6 @@ public class FoneService extends Service {
 
     public  FoneService(){}
 
-
-
     @Override
     public void onDestroy() {
         Log.i("TAG","onDestroyService");
@@ -98,20 +96,38 @@ public class FoneService extends Service {
             }
         };
         is_binded = false;
-        connect();
+        //connect();
 //        copy_db();
         IntentFilter filter=new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
         registerReceiver(broadcastReceiver, filter);
-        selectUserssTask userOp=new selectUserssTask();
-        userOp.execute();
-        selectMailsTask mailOp=new selectMailsTask();
-        mailOp.execute();
 
+        if (isActiveNetwork()) {
+            update_form();
+            selectUserssTask userOp=new selectUserssTask();
+            userOp.execute();
+            selectMailsTask mailOp=new selectMailsTask();
+            mailOp.execute();
 
+        }
+        else{
+            Intent mails_intent=new Intent();
+            mails_intent.setAction(getString(R.string.ACTION_STORE_MAILS));
+            sendBroadcast(mails_intent);
+            Intent user_intent=new Intent();
+            user_intent.setAction(getString(R.string.ACTION_STORE_USERS));
+            sendBroadcast(user_intent);
+        }
         //        if (isActiveNetwork()) {
 //            connect();
 //        }
-        return START_STICKY;
+        return START_NOT_STICKY;
+    }
+
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.i("TAG","onUnbind");
+        return super.onUnbind(intent);
     }
 
     @Override
@@ -120,13 +136,11 @@ public class FoneService extends Service {
          return mBinder;
     }
 
-    public void connect()    {
-        if (isActiveNetwork() && !isConServer) {
-            update_form();
-            mOpenConnection = new OpenConnection();
-            mOpenConnection.execute();
+    public class LocalBinder extends Binder {
+        public FoneService getService() {
+            // Return this instance of SignalRService so clients can call public methods
+            return FoneService.this;
         }
-
     }
 
     public class OpenConnection extends AsyncTask<Void,Void,Boolean> {
@@ -143,6 +157,7 @@ public class FoneService extends Service {
 
                 }
             };
+            Log.i("TAG","start connection...");
             String serverUrl = getString(R.string.server_name);
             mHubConnection = new HubConnection(serverUrl);
             mHubConnection.setCredentials(credentials);
@@ -181,7 +196,7 @@ public class FoneService extends Service {
                     @Override
                     public void run() {
                         Log.i("TAG", "connected");
-                        isConServer=false;
+
                     }
                 });
                 mHubConnection.reconnected(new Runnable() {
@@ -197,9 +212,9 @@ public class FoneService extends Service {
                         Log.i("TAG", "closed");
                         isConServer=false;
                         mHubProxy=null;
-                        if (isActiveNetwork())
-                        mOpenConnection = new OpenConnection();
-                        mOpenConnection.execute();
+//                        if (isActiveNetwork())
+//                        mOpenConnection = new OpenConnection();
+//                        mOpenConnection.execute();
 
                     }
                 });
@@ -212,30 +227,116 @@ public class FoneService extends Service {
                             }
                         }
                         , JsonElement.class);
-                mHubProxy.on("singedin",new  SubscriptionHandler() {
+                mHubProxy.on("UpdateMessage", new SubscriptionHandler1<JsonElement>() {
                     @Override
-                    public void run() {
-                        Log.i("TAG","sing_in");
+                    public void  run(final JsonElement je) {
+                        Boolean result=true;
+                        if (je==null) result=false;
+                        else {
+                            ContentValues insertValues;
+                            try {
+                                JsonObject jo=je.getAsJsonObject();
+                                insertValues = new ContentValues();
+                                insertValues.put(Message._ID, jo.get("Id").getAsInt());
+                                insertValues.put(Message.COLIMN_NAME_DATE, jo.get("Time").getAsString());
+                                if (!jo.get("ReceiveID").isJsonNull())
+                                    insertValues.put(Message.COLUMN_NAME_ReceiveID, jo.get("ReceiveID").getAsInt());
+                                if (!jo.get("SenderID").isJsonNull())
+                                    insertValues.put(Message.COLUMN_NAME_SenderID, jo.get("SenderID").getAsInt());
+                                insertValues.put(Message.COLUMN_NAME_TEXT, jo.get("Text").getAsString());
+                                chatDBlocal = openOrCreateDatabase(DB_NAME,
+                                        Context.MODE_PRIVATE, null);
+                                chatDBlocal.execSQL("pragma foreign_keys = on");
+                                chatDBlocal.execSQL(CREATE_MAILS_DB);
+                                // chatDBlocal.delete(Message.TABLE_NAME,null,null);
+                                chatDBlocal.insert(Message.TABLE_NAME, null, insertValues);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                result=false;
+                            }
+                        }
+                        Intent intent=new Intent();
+                        intent.putExtra("result",result);
+                        intent.setAction(getString(R.string.ACTION_SEND_MESSAGE));
+                        sendBroadcast(intent);
 
                     }
-                });
-                if (is_binded == false) sing_in();
-//                Intent intent = new Intent(getBaseContext(), FoneService.class);
-//                startService(intent);
+                },JsonElement.class);
             }
         }
     }
 
-    public class LocalBinder extends Binder {
-        public FoneService getService() {
-            // Return this instance of SignalRService so clients can call public methods
-            return FoneService.this;
+    public void sendMessage(String text, int curID, int another_user_id) {
+        if (isActiveNetwork()) {
+            update_form();
+            SendMessageTask send_mes = new SendMessageTask();
+            ContentValues values=new ContentValues();
+            values.put("text",text);
+            values.put("sender_id",curID);
+            values.put("receiver_id",another_user_id);
+            send_mes.execute(values);
+        }
+        else{
+            Intent intent=new Intent();
+            intent.putExtra("result",false);
+            intent.setAction(getString(R.string.ACTION_SEND_MESSAGE));
+            sendBroadcast(intent);
+
+        }
+
+    }
+
+    public  class SendMessageTask extends AsyncTask<ContentValues,Void,Boolean> {
+
+        @Override
+        protected Boolean doInBackground(ContentValues[] objects) {
+            ContentValues values=objects[0];
+            String text = values.getAsString("text");
+            int cur_id=values.getAsInteger("sender_id");
+            int another_user_id=values.getAsInteger("receiver_id");
+            JsonObject jo;
+            final String SERVER_METHOD_SEND = "NewMessage";
+            try {
+                while (isConServer==false){}
+                jo = mHubProxy.invoke(JsonObject.class, SERVER_METHOD_SEND, cur_id,another_user_id,text).get();
+            }
+            catch (InterruptedException | ExecutionException e) {
+                jo=null;
+            }
+            if (jo==null) return false;
+            ContentValues insertValues;
+            try {
+                insertValues = new ContentValues();
+                insertValues.put(Message._ID, jo.get("Id").getAsInt());
+                insertValues.put(Message.COLIMN_NAME_DATE, jo.get("Time").getAsString());
+                if (!jo.get("ReceiveID").isJsonNull()) insertValues.put(Message.COLUMN_NAME_ReceiveID, jo.get("ReceiveID").getAsInt());
+                if (!jo.get("SenderID").isJsonNull())  insertValues.put(Message.COLUMN_NAME_SenderID, jo.get("SenderID").getAsInt());
+                insertValues.put(Message.COLUMN_NAME_TEXT, jo.get("Text").getAsString());
+                chatDBlocal = openOrCreateDatabase(DB_NAME,
+                        Context.MODE_PRIVATE, null);
+                chatDBlocal.execSQL("pragma foreign_keys = on");
+                chatDBlocal.execSQL(CREATE_MAILS_DB);
+                // chatDBlocal.delete(Message.TABLE_NAME,null,null);
+                chatDBlocal.insert(Message.TABLE_NAME, null, insertValues);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return  true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+            Intent intent=new Intent();
+            intent.putExtra("result",result);
+            intent.setAction(getString(R.string.ACTION_SEND_MESSAGE));
+            sendBroadcast(intent);
         }
     }
 
     public void sing_in()     {
         if (isActiveNetwork()) {
-            //if (!isConServer) connect();
             update_form();
             SingInTask sing_in = new SingInTask();
             sing_in.execute();
@@ -255,7 +356,7 @@ public class FoneService extends Service {
             JsonObject result;
             final String SERVER_METHOD_SEND = "SingIn";
             try {
-                while (mHubProxy==null){}
+                while (isConServer==false){}
                 result = mHubProxy.invoke(JsonObject.class, SERVER_METHOD_SEND, cur_user.login,cur_user.password).get();
             }
             catch (InterruptedException | ExecutionException e) {
@@ -279,7 +380,7 @@ public class FoneService extends Service {
                 editor.putInt(Person._ID, jo.get("Id").getAsInt());
                 editor.putString(Person.COLUMN_NAME_FIRST_NAME, jo.get("FirstName").getAsString());
                 editor.putString(Person.COLUMN_NAME_LAST_NAME, jo.get("LastName").getAsString());
-                editor.putString(Person.COLUMN_NAME_LOGIN, jo.get("Login").getAsString());
+                //editor.putString(Person.COLUMN_NAME_LOGIN, jo.get("Login").getAsString());
                 editor.putBoolean(getString(R.string.SAVE_KEY),true);
             }
             editor.apply();
@@ -289,14 +390,9 @@ public class FoneService extends Service {
         }
     }
 
-
-    public  void sing_up()
-    {
+    public  void sing_up()    {
         if (isActiveNetwork()) {
-//            if (!isConServer) connect();
-            if (isConServer) mHubConnection.stop();
-            //mHubProxy=null;
-            //connect();
+            update_form();
             SingUpTask sing_up = new SingUpTask();
             sing_up.execute();
         }
@@ -317,7 +413,7 @@ public class FoneService extends Service {
             final String SERVER_METHOD_SEND = "addNewUser";
             try {
 
-                while (mHubProxy==null){}
+                while (isConServer==false){}
                 result = mHubProxy.invoke(JsonObject.class, SERVER_METHOD_SEND, cur_user.first_name,cur_user.login,cur_user.password,cur_user.last_name).get();
             }
             catch (InterruptedException| ExecutionException e) {
@@ -339,9 +435,6 @@ public class FoneService extends Service {
             else {
                 intent.putExtra("result",true);
                 editor.putInt(Person._ID, jo.get("Id").getAsInt());
-                editor.putString(Person.COLUMN_NAME_FIRST_NAME, jo.get("FirstName").getAsString());
-                editor.putString(Person.COLUMN_NAME_LAST_NAME, jo.get("LastName").getAsString());
-                editor.putString(Person.COLUMN_NAME_LOGIN, jo.get("Login").getAsString());
                 editor.putBoolean(getString(R.string.SAVE_KEY),true);
             }
             editor.apply();
@@ -351,12 +444,20 @@ public class FoneService extends Service {
     }
 
     public void update_form()    {
+        Log.i("TAG","update_form");
        if (mSettings==null) mSettings = getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        String last_login=cur_user.login;
         cur_user.login=mSettings.getString(Person.COLUMN_NAME_LOGIN,"");
         cur_user.password=mSettings.getString(Person.COLUMN_NAME_PASSWORD,"");
         cur_user.first_name=mSettings.getString(Person.COLUMN_NAME_FIRST_NAME,"");
         cur_user.last_name=mSettings.getString(Person.COLUMN_NAME_LAST_NAME,"");
-
+    if (isConServer && last_login==cur_user.login);
+        else{
+            if (mHubConnection!=null) mHubConnection.stop();
+            isConServer=false;
+            mOpenConnection=new OpenConnection();
+            mOpenConnection.execute();
+        }
     }
 
     public boolean isActiveNetwork(){
@@ -364,7 +465,7 @@ public class FoneService extends Service {
                 (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-
+        Boolean hasInternetCon;
         if (activeNetwork!=null) hasInternetCon = activeNetwork.isConnectedOrConnecting();
         else hasInternetCon=false;
         return hasInternetCon;
@@ -385,10 +486,10 @@ public class FoneService extends Service {
 
             }
             cursor.close();
-            update_form();
+            //update_form();
             final String SERVER_METHOD_SEND = "selectMails";
             try {
-                while (mHubProxy == null) {
+                while (isConServer == false) {
                 }
                 ja = mHubProxy.invoke(JsonArray.class, SERVER_METHOD_SEND, cur_user.login, lastID).get();
             } catch (InterruptedException | ExecutionException e) {
@@ -430,28 +531,6 @@ public class FoneService extends Service {
         }
     }
 
-    public  void copy_db()    {
-        try {
-            File sd = Environment.getExternalStorageDirectory();
-            if (sd.canWrite()) {
-                String currentDBPath = "/data/data/" + getPackageName() + "/databases/"+DB_NAME;
-                String backupDBPath = "messengerdb.db";
-                File currentDB = new File(currentDBPath);
-                File backupDB = new File(sd, backupDBPath);
-
-                if (currentDB.exists()) {
-                    FileChannel src = new FileInputStream(currentDB).getChannel();
-                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
-                    dst.transferFrom(src, 0, src.size());
-                    src.close();
-                    dst.close();
-                }
-            }
-        } catch (Exception e) {
-
-        }
-    }
-
     public class selectUserssTask extends  AsyncTask<Void,Void,Void>{
 
         @Override
@@ -467,7 +546,7 @@ public class FoneService extends Service {
 
             }
             cursor.close();
-            update_form();
+            //update_form();
             final String SERVER_METHOD_SEND = "selectUsers";
             try {
                 while (mHubProxy==null){}

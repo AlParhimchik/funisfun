@@ -72,12 +72,21 @@ public class MailFragment extends android.support.v4.app.Fragment {
         int curID=0;
         if (mSettings==null) mSettings=ctx.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         String curLogin=mSettings.getString(Person.COLUMN_NAME_LOGIN,"");
-        Cursor cursor=chatDBlocal.query(Person.TABLE_NAME,new String[]{Person._ID},Person.COLUMN_NAME_LOGIN+" = ?",new String[]{curLogin},null,null,null);
+        Cursor cursor=chatDBlocal.query(Person.TABLE_NAME,new String[]{Person._ID},Person.COLUMN_NAME_LOGIN+" = ?   ",new String[]{curLogin},null,null,null);
         if (cursor.moveToFirst()){
             curID=cursor.getInt(cursor.getColumnIndex(Person._ID));
         }
 
         cursor.close();
+        cursor=chatDBlocal.query(Person.TABLE_NAME,new String[]{Person._ID,Person.COLUMN_NAME_LOGIN},null,null,null,null,null);
+        if (cursor.moveToFirst()) {
+            do {
+                Log.i("TAG", String.valueOf(cursor.getInt(cursor.getColumnIndex(Person._ID))) + cursor.getString(cursor.getColumnIndex(Person.COLUMN_NAME_LOGIN)));
+
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
+
         cursor=chatDBlocal.query(Message.TABLE_NAME,null,Message.COLUMN_NAME_ReceiveID+" = ? OR "+Message.COLUMN_NAME_SenderID+" = ?",new String[]{String.valueOf(curID),String.valueOf(curID)},null,null,null);
         if (cursor.moveToFirst()){
             do {

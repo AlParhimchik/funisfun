@@ -11,6 +11,9 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -47,19 +50,34 @@ public class mailsAdapter  extends RecyclerView.Adapter<mailsAdapter.ViewHolder>
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.date.setText(mails.get(position).time.toString());
+        String cur_date = new SimpleDateFormat("MM-dd").format(Calendar.getInstance().getTime());
+        String mail_date=new SimpleDateFormat("MM-dd").format(mails.get(position).time);
+        if (cur_date.equals(mail_date)){
+            Format formatter = new SimpleDateFormat("HH:mm");
+            String s = formatter.format(mails.get(position).time);
+            holder.date.setText(s);
+        }
+        else {
+            Format formatter = new SimpleDateFormat("MM.dd");
+            String s = formatter.format(mails.get(position).time);
+            holder.date.setText(s);
+        }
         holder.mail_text.setText(mails.get(position).text);
-        User user;
+        final User user;
         if(mails.get(position).receiver==null)
            user=mails.get(position).sender;
         else {
             user = mails.get(position).receiver;
         }
         holder.name_user.setText(user.first_name+" "+user.last_name);
+        final int id=user.id;
+        final String name=user.first_name+" "+user.last_name;
         holder.mail_view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(ctx,ChatActivity.class);
+                intent.putExtra(ctx.getString(R.string.ID_KEY),id);
+                intent.putExtra(ctx.getString(R.string.NAME_ANOTHER_USER),name);
                 ctx.startActivity(intent);
             }
         });
@@ -112,5 +130,6 @@ public class mailsAdapter  extends RecyclerView.Adapter<mailsAdapter.ViewHolder>
             date=(TextView)v.findViewById(R.id.date_text);
             mail_view=(RelativeLayout)v.findViewById(R.id.layout_mail_user);
         }
+
     }
 }

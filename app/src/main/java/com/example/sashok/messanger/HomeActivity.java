@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
@@ -38,6 +39,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     ProgressBar progressBar;
     LinearLayout mainLayout;
     TabLayout tabLayout;
+    Intent service;
     Boolean mail_update=false,user_update=false;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,12 +50,12 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         mainLayout=(LinearLayout) findViewById(R.id.home_layout);
         progressBar=(ProgressBar) findViewById(R.id.progressBar);
         setSupportActionBar(myToolbar);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         update_form();
         startProgressBar();
-        myToolbar.setNavigationOnClickListener(this);
+//        myToolbar.setNavigationOnClickListener(this);
         TextView mTitle = (TextView) myToolbar.findViewById(R.id.toolbar_title_home);
         mTitle.setText(first_name+" "+last_name);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -78,6 +80,12 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         };
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.i("TAG","hey");
+    }
+
     public void startWithViewPager(){
         mainLayout.setVisibility(View.VISIBLE);
         viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -97,8 +105,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     public void startService() {
 
 
-        Intent intent = new Intent(getBaseContext(), FoneService.class);
-        startService(intent);
+       service = new Intent(getBaseContext(), FoneService.class);
+        startService(service);
 
     }
 
@@ -158,4 +166,10 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         registerReceiver(receiver,intentFilter);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        boolean result=stopService(new Intent(getBaseContext(),FoneService.class));
+        Log.i("TAG","Destroy home"+String.valueOf(result));
+    }
 }

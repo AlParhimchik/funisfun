@@ -1,74 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
-    <LinearLayout
-        android:orientation="vertical"
-        android:id="@+id/activity_main"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+     android:visibility="invisible"
+     android:layout_height="match_parent"
+     android:layout_width="match_parent"
+     android:id="@+id/activity_main"
+     android:orientation="vertical">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_login"
+        android:minHeight="?attr/actionBarSize"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:clickable="true"
-        android:focusableInTouchMode="true"
-        tools:context="company.my.testfun.LoginActivity"
-        android:layout_gravity="center_horizontal">
+        android:layout_height="wrap_content"
+        style="@style/MyCustomTabTextAppearance"
+        app:titleTextColor="@android:color/white"
+        android:background="?attr/colorPrimary"/>
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        >
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:clickable="true"
+            android:focusableInTouchMode="true"
+            tools:context="company.my.testfun.LoginActivity"
+            android:layout_gravity="center_horizontal">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:src="@drawable/fun_logo" />
+            <EditText
+                android:background="@drawable/edit_text_style"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="25dp"
+                android:layout_height="45dp"
+                android:layout_width="match_parent"
+                android:hint="@string/login"
+                android:id="@+id/login_form" />
+            <EditText
+                android:layout_height="45dp"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="25dp"
+                android:hint="@string/password"
+                android:inputType="textPassword"
+                android:background="@drawable/edit_text_style"
+                android:id="@+id/password_form"/>
+            <TextView
+                android:gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/sing_in"
+                android:textSize="25dp"
+                android:background="@drawable/button_add_style"
+                android:textColor="@android:color/white"
+                android:onClick="sing_in"/>
+            <TextView
+                android:textColor="@android:color/white"
+                android:layout_marginTop="20dp"
+                android:text="@string/sing_up"
+                android:textSize="25dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:background="@drawable/button_add_style"
+                android:onClick="sing_up"/>
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:src="@drawable/fun_logo" />
-        <EditText
-            android:background="@drawable/edit_text_style"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginTop="25dp"
-            android:layout_height="45dp"
-            android:layout_width="match_parent"
-            android:hint="@string/login"
-            android:id="@+id/login_form" />
-        <EditText
-            android:layout_height="45dp"
-            android:layout_width="match_parent"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginTop="25dp"
-            android:hint="@string/password"
-            android:inputType="textPassword"
-            android:background="@drawable/edit_text_style"
-            android:id="@+id/password_form"/>
-        <TextView
-            android:gravity="center"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/sing_in"
-            android:textSize="25dp"
-            android:background="@drawable/button_add_style"
-            android:textColor="@android:color/white"
-            android:onClick="sing_in"/>
-        <TextView
-            android:textColor="@android:color/white"
-            android:layout_marginTop="20dp"
-            android:text="@string/sing_up"
-            android:textSize="25dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:background="@drawable/button_add_style"
-            android:onClick="sing_up"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="drop db"
-            android:onClick="deleteDB"/>
-    </LinearLayout>
+        </LinearLayout>
 
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

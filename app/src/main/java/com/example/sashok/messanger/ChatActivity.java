@@ -1,9 +1,11 @@
 package com.example.sashok.messanger;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -15,13 +17,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -35,7 +43,8 @@ import java.util.List;
 public class ChatActivity extends AppCompatActivity implements View.OnFocusChangeListener, View.OnClickListener {
     private List<Mail> mails;
     private boolean mBound = false;
-    String first_name,last_name;
+    String  another_user_name;
+    int cur_user_id=0;
     SharedPreferences mSettings;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -48,41 +57,94 @@ public class ChatActivity extends AppCompatActivity implements View.OnFocusChang
             + Message.COLUMN_NAME_ReceiveID+" INTEGER ,"+ Message.COLUMN_NAME_SenderID
             +" INTEGER, CONSTRAINT receive_key FOREIGN key("+Message.COLUMN_NAME_ReceiveID+") REFERENCES "+Person.TABLE_NAME+"("+Person._ID+") ON DELETE SET NULL," +
             "constraint send_key foreign key("+Message.COLUMN_NAME_SenderID+") REFERENCES "+Person.TABLE_NAME+"("+Person._ID+") on delete set null)";
-
-
+    private final Context mContext = this;
+    private FoneService mService;
+    private boolean mConected = false;
+    BroadcastReceiver receiver;
+    TextView btn_send;
+    RelativeLayout layout;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chat_layout);
+        bindFoneService();
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         mLayoutManager = new LinearLayoutManager(this);
+        //layoutManager.setStackFromEnd(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mails=new ArrayList<Mail>();
+         mails=new ArrayList<>();
         readData();
-        mAdapter = new mailsAdapter(this,mails);
+        mAdapter = new mail_with_user_Adapter(this,mails);
         mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.getLayoutManager().scrollToPosition(mails.size()-1);
         text_input = (EditText) findViewById(R.id.mail_input);
+        text_input.setImeActionLabel("Send", KeyEvent.KEYCODE_ENTER);
         text_input.setOnFocusChangeListener(this);
-
+        another_user_name=getIntent().getStringExtra(getString(R.string.NAME_ANOTHER_USER));
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-        update_form();
+
         myToolbar.setNavigationOnClickListener(this);
         TextView mTitle = (TextView) myToolbar.findViewById(R.id.toolbar_title);
-        mTitle.setText(first_name+" "+last_name);
+        mTitle.setText(another_user_name);
+        layout=(RelativeLayout)findViewById(R.id.focus_layout);
+        btn_send=(TextView)findViewById(R.id.send_button);
+        btn_send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessage();
+
+            }
+        });
+
+        receiver=new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                Boolean result=intent.getBooleanExtra("result",false);
+                if (result) {
+                    readData();
+                    mAdapter.notifyDataSetChanged();
+                    mRecyclerView.getLayoutManager().scrollToPosition(mails.size()-1);
+                }
+                else{
+                    Toast.makeText(getBaseContext(),"no internet connection",Toast.LENGTH_LONG).show();
+                }
+
+            }
+        };
+
 
     }
 
-    private void readData() {
+    private void sendMessage(){
+        if (mConected){
+            if (!TextUtils.isEmpty(text_input.getText())) {
+                hideKeyboard(layout);
+                if (mSettings==null) mSettings=getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+                int another_user_id=getIntent().getIntExtra(getString(R.string.ID_KEY),0);
+                mService.sendMessage(text_input.getText().toString(),cur_user_id,another_user_id);
+                text_input.setText("");
+            }
+        }
+    }
+
+     private void readData() {
+        if (mSettings==null) mSettings=getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        cur_user_id=mSettings.getInt(Person._ID,0);
         chatDBlocal = openOrCreateDatabase(DB_NAME,
                 Context.MODE_PRIVATE, null);
         chatDBlocal.execSQL(CREATE_MAILS_DB);
-        if (mSettings==null) mSettings=getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-        String curLogin=mSettings.getString(Person.COLUMN_NAME_LOGIN,"");
-        Cursor cursor=chatDBlocal.query(Message.TABLE_NAME,null,null,null,null,null,null);
+        String another_user_id=String.valueOf(getIntent().getIntExtra(getString(R.string.ID_KEY),0));
+        int last_mail_id;
+        if (mails.size()==0) last_mail_id=0;
+        else{
+            last_mail_id=mails.get(mails.size()-1).mailID;
+        }
+         Cursor cursor=chatDBlocal.query(Message.TABLE_NAME,null,"(("+Message.COLUMN_NAME_ReceiveID+" = ? AND "+Message.COLUMN_NAME_SenderID +" = ? ) OR ("+Message.COLUMN_NAME_ReceiveID+" = ? AND "+Message.COLUMN_NAME_SenderID+" = ? )) AND ("+Message._ID +" > ? )" ,new String[]{String.valueOf(cur_user_id),another_user_id,another_user_id,String.valueOf(cur_user_id),String.valueOf(last_mail_id)},null,null,null);
         //Cursor cursor=chatDBlocal.query(Message.TABLE_NAME,null,Person.COLUMN_NAME_LOGIN+" = ?",new String[]{curLogin},null,null,null);
         if (cursor.moveToFirst()){
             do {
@@ -106,16 +168,9 @@ public class ChatActivity extends AppCompatActivity implements View.OnFocusChang
         }
     }
 
-    public void update_form()    {
-        if (mSettings==null) mSettings = getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-        first_name=mSettings.getString(Person.COLUMN_NAME_FIRST_NAME,"");
-        last_name=mSettings.getString(Person.COLUMN_NAME_LAST_NAME,"");
-
-    }
-
     @Override
     public void onBackPressed() {
-
+        finish();
     }
 
     @Override
@@ -134,6 +189,28 @@ public class ChatActivity extends AppCompatActivity implements View.OnFocusChang
         return true;
     }
 
+    private final ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            FoneService.LocalBinder binder = (FoneService.LocalBinder) service;
+            mService = binder.getService();
+            mConected=true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mConected = false;
+        }
+    };
+
+    public void bindFoneService()   {
+        Intent intent = new Intent();
+        intent.setClass(mContext, FoneService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
     public void onFocusChange(View view, boolean b) {
         if (!b)
         {
@@ -149,5 +226,34 @@ public class ChatActivity extends AppCompatActivity implements View.OnFocusChang
     @Override
     public void onClick(View v) {
         finish();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (receiver!=null) unregisterReceiver(receiver);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        IntentFilter intentFilter = new IntentFilter(getString(R.string.ACTION_SEND_MESSAGE));
+        registerReceiver(receiver,intentFilter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mConected)
+        {
+            mConected=false;
+            unbindService(mConnection);
+        }
     }
 }

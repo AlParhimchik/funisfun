@@ -1,15 +1,10 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/card_view"
-    android:layout_margin="0dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingLeft="0dp"
-    android:paddingRight="0dp">
+    android:layout_height="wrap_content">
 
     <RelativeLayout
-        android:id="@+id/card_layout"
-        android:clickable="true"
+         android:clickable="true"
         android:focusableInTouchMode="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
