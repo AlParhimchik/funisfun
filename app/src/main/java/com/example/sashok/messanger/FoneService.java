@@ -145,19 +145,18 @@ public class FoneService extends Service {
 
     public class OpenConnection extends AsyncTask<Void,Void,Boolean> {
         @Override
-        protected Boolean doInBackground(Void... params)
-        {
+        protected Boolean doInBackground(Void... params) {
             Boolean result;
-            final String login=cur_user.login.toString();
+            final String login = cur_user.login.toString();
             Platform.loadPlatformComponent(new AndroidPlatformComponent());
             Credentials credentials = new Credentials() {
                 @Override
                 public void prepareRequest(Request request) {
-                    request.addHeader("login",login);
+                    request.addHeader("login", login);
 
                 }
             };
-            Log.i("TAG","start connection...");
+            Log.i("TAG", "start connection...");
             String serverUrl = getString(R.string.server_name);
             mHubConnection = new HubConnection(serverUrl);
             mHubConnection.setCredentials(credentials);
@@ -167,9 +166,9 @@ public class FoneService extends Service {
             final SignalRFuture<Void> signalRFuture = mHubConnection.start(clientTransport);
             try {
                 signalRFuture.get();
-                result=true;
+                result = true;
             } catch (InterruptedException | ExecutionException e) {
-                result=false;
+                result = false;
 
             }
             return result;
@@ -177,7 +176,7 @@ public class FoneService extends Service {
 
         @Override
         protected void onPostExecute(Boolean result) {
-            isConServer=result;
+            isConServer = result;
             if (result) {
                 mHubConnection.stateChanged(new StateChangedCallback() {
                     @Override
@@ -189,7 +188,7 @@ public class FoneService extends Service {
                     @Override
                     public void run() {
                         Log.i("TAG", "reconnected");
-                        isConServer=false;
+                        isConServer = false;
                     }
                 });
                 mHubConnection.connected(new Runnable() {
@@ -203,30 +202,56 @@ public class FoneService extends Service {
                     @Override
                     public void run() {
                         Log.i("TAG", "reconnected");
-                        isConServer=false;
+                        isConServer = false;
                     }
                 });
                 mHubConnection.closed(new Runnable() {
                     @Override
                     public void run() {
                         Log.i("TAG", "closed");
-                        isConServer=false;
-                        mHubProxy=null;
+                        isConServer = false;
+                        //mHubProxy = null;
 //                        if (isActiveNetwork())
 //                        mOpenConnection = new OpenConnection();
 //                        mOpenConnection.execute();
 
                     }
                 });
-                mHubProxy.on("updateUsers",
-                        new SubscriptionHandler1<JsonElement>() {
+                mHubProxy.on("UpdateMessege", new SubscriptionHandler1<JsonElement>() {
                             @Override
-                            public void run(final JsonElement json) {
-                                Log.i("TAG",json.toString());
-
+                            public void run(final JsonElement je) {
+                                Boolean result = true;
                             }
                         }
-                        , JsonElement.class);
+                    ,JsonElement.class);
+
+                mHubProxy.on("updateUsers", new SubscriptionHandler1<JsonElement>() {
+                            @Override
+                            public void run(final JsonElement je) {
+                                try {
+
+                                    JsonObject jo;
+                                    ContentValues insertValues;
+                                    jo = je.getAsJsonObject();
+                                    insertValues = new ContentValues();
+                                    insertValues.put(Person._ID, jo.get("Id").getAsInt());
+                                    insertValues.put(Person.COLUMN_NAME_FIRST_NAME, jo.get("FirstName").getAsString());
+                                    insertValues.put(Person.COLUMN_NAME_LAST_NAME, jo.get("LastName").getAsString());
+                                    chatDBlocal = openOrCreateDatabase(DB_NAME,
+                                            Context.MODE_PRIVATE, null);
+                                    chatDBlocal.execSQL(CREATE_USERS_DB);
+                                    // chatDBlocal.delete(Message.TABLE_NAME,null,null);
+                                    chatDBlocal.insert(Person.TABLE_NAME, null, insertValues);
+                                }
+                                catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                Intent intent=new Intent(getString(R.string.ACTION_NEW_USER_ADDED));
+                                sendBroadcast(intent);
+                            }
+                        }
+                        ,JsonElement.class);
+
                 mHubProxy.on("UpdateMessage", new SubscriptionHandler1<JsonElement>() {
                     @Override
                     public void  run(final JsonElement je) {
@@ -453,7 +478,10 @@ public class FoneService extends Service {
         cur_user.last_name=mSettings.getString(Person.COLUMN_NAME_LAST_NAME,"");
     if (isConServer && last_login==cur_user.login);
         else{
-            if (mHubConnection!=null) mHubConnection.stop();
+            if (mHubConnection!=null) {
+                mHubConnection.stop();
+                //mHubProxy.removeSubscription("UpdateMessage");
+            }
             isConServer=false;
             mOpenConnection=new OpenConnection();
             mOpenConnection.execute();
@@ -592,4 +620,44 @@ public class FoneService extends Service {
 
         }
     }
+
+    public  class showOnlineUsers extends AsyncTask<Void,Void,Void> {
+
+        @Override
+        protected Void doInBackground(Void[] objects) {
+            JsonObject result;
+            final String SERVER_METHOD_SEND = "showToUsers";
+            try {
+
+                while (isConServer==false){}
+                result = mHubProxy.invoke(JsonObject.class, SERVER_METHOD_SEND).get();
+            }
+            catch (InterruptedException| ExecutionException e) {
+                result=null;
+            }
+//            Log.i("TAG",result.toString());
+
+
+            final String method = "onlineUsers";
+            try {
+
+                while (isConServer==false){}
+                result = mHubProxy.invoke(JsonObject.class, method).get();
+            }
+            catch (InterruptedException| ExecutionException e) {
+                result=null;
+            }
+            Log.i("TAG",result.toString());
+
+            return null;
+        }
+
+    }
+
+    public void showUsers(){
+        showOnlineUsers op=new showOnlineUsers();
+        op.execute();
+
+    }
+
 }

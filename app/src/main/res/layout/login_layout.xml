@@ -78,8 +78,14 @@
                 android:layout_gravity="right"
                 android:background="@drawable/button_add_style"
                 android:onClick="sing_up"/>
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="show onlice"
+                android:onClick="showOnline"/>
 
         </LinearLayout>
 
     </ScrollView>
+
 </LinearLayout>

@@ -205,5 +205,10 @@ public class LoginActivity extends AppCompatActivity implements  View.OnFocusCha
             unbindService(mConnection);
         }
     }
+
+    public void showOnline(View view){
+        mService.showUsers();
+
+    }
 }
 

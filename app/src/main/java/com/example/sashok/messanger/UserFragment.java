@@ -1,7 +1,10 @@
 package com.example.sashok.messanger;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -25,6 +28,7 @@ public class UserFragment extends android.support.v4.app.Fragment {
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     List<User> users;
+    BroadcastReceiver receiver;
     public final String DB_NAME="messenger.db";
     SQLiteDatabase chatDBlocal;
     public final String CREATE_USERS_DB="CREATE TABLE IF NOT EXISTS "+ Person.TABLE_NAME +
@@ -48,16 +52,36 @@ public class UserFragment extends android.support.v4.app.Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ctx=getActivity();
+        users=new ArrayList<User>();
         readUsersFromDb();
+        receiver=new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction()==getString(R.string.ACTION_NEW_USER_ADDED))
+                {
+                    readUsersFromDb();
+                    mAdapter.notifyDataSetChanged();
+
+                }
+
+            }
+
+        };
 
     }
 
     private void readUsersFromDb() {
-        users=new ArrayList<User>();
         chatDBlocal = ctx.openOrCreateDatabase(DB_NAME,
                 Context.MODE_PRIVATE, null);
         chatDBlocal.execSQL(CREATE_USERS_DB);
-        Cursor cursor=chatDBlocal.query(Person.TABLE_NAME,null,null,null,null,null,null);
+        int last_user_id;
+        if (users.size()==0) last_user_id=0;
+        else{
+            last_user_id=users.get(users.size()-1).id;
+        }
+
+        Cursor cursor=chatDBlocal.query(Person.TABLE_NAME,null,Person._ID+" > ?",new String[]{String.valueOf(last_user_id)},null,null,null);
         if (cursor.moveToFirst())
             do{
                 User user=new User();
@@ -69,7 +93,19 @@ public class UserFragment extends android.support.v4.app.Fragment {
 
             }while(cursor.moveToNext());
         cursor.close();
-
-
     }
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (receiver!=null) ctx.unregisterReceiver(receiver);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        IntentFilter intentFilter = new IntentFilter(getString(R.string.ACTION_NEW_USER_ADDED));
+        ctx.registerReceiver(receiver,intentFilter);
+    }
+
 }

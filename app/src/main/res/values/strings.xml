@@ -23,6 +23,7 @@
     <string name="ID_KEY">id</string>
     <string name="NAME_ANOTHER_USER">another_user</string>
     <string name="ACTION_SEND_MESSAGE">company.my.testfun.action.SendMessage</string>
+    <string name="ACTION_NEW_USER_ADDED">company.my.testfun.action.UserAdded</string>
 
 
 </resources>
